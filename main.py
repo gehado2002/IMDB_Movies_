@@ -258,7 +258,7 @@ st.markdown(
 st.markdown(
     """
     <div style="text-align:center; margin-bottom:30px;">
-        <img src="https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3cnE0a2M5Y2h2ZjAxOXp3enJxZjRyZDF2Y24yYjMyeW81b3U5NWYxcSZlcD12MV9naWZzX3JlbGF0ZWQmY3Q9Zw/JUwN8RdJAnSPsvy5eZ/giphy.gif" width="600">
+        <img src="https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3cnE0a2M5Y2h2ZjAxOXp3enJxZjRyZDF2Y24yYjMyeW85b3U5NWYxcSZlcD12MV9naWZzX3JlbGF0ZWQmY3Q9Zw/JUwN8RdJAnSPsvy5eZ/giphy.gif" width="600">
     </div>
     """, unsafe_allow_html=True
 )
@@ -323,21 +323,21 @@ with st.sidebar.expander("📅 Released Year", expanded=True):
     year_min = int(df['released_year'].min(skipna=True)) if pd.notna(df['released_year'].min(skipna=True)) else 1900
     year_max = int(df['released_year'].max(skipna=True)) if pd.notna(df['released_year'].max(skipna=True)) else 2025
     st.session_state.filters['year'] = st.slider("Year Range", min_value=year_min, max_value=year_max,
-                           value=st.session_state.filters['year'], step=1, key='year_filter_widget')
+                           value=st.session_state.filters['year'], step=1, key='year_range_slider') # Added unique key
 
 # IMDB Rating filter
 with st.sidebar.expander("⭐ IMDB Rating", expanded=True):
     rating_min = float(df['imdb_rating'].min(skipna=True)) if pd.notna(df['imdb_rating'].min(skipna=True)) else 0.0
     rating_max = float(df['imdb_rating'].max(skipna=True)) if pd.notna(df['imdb_rating'].max(skipna=True)) else 10.0
     st.session_state.filters['rating'] = st.slider("Rating Range", min_value=rating_min, max_value=rating_max,
-                           value=st.session_state.filters['rating'], step=0.1, key='rating_filter_widget')
+                           value=st.session_state.filters['rating'], step=0.1, key='rating_range_slider') # Added unique key
 
 # Runtime filter
 with st.sidebar.expander("⏱️ Runtime", expanded=True):
     runtime_min = int(df['runtime'].min(skipna=True)) if not pd.isna(df['runtime'].min(skipna=True)) else 0
     runtime_max = int(df['runtime'].max(skipna=True)) if not pd.isna(df['runtime'].max(skipna=True)) else 180
     st.session_state.filters['runtime'] = st.slider("Runtime (minutes)", min_value=runtime_min, max_value=runtime_max,
-                           value=st.session_state.filters['runtime'], step=5, key='runtime_filter_widget')
+                           value=st.session_state.filters['runtime'], step=5, key='runtime_range_slider') # Added unique key
 
 # Meta Score filter
 if 'meta_score' in df.columns:
@@ -345,7 +345,7 @@ if 'meta_score' in df.columns:
         meta_min = int(df['meta_score'].min(skipna=True)) if not pd.isna(df['meta_score'].min(skipna=True)) else 0
         meta_max = int(df['meta_score'].max(skipna=True)) if not pd.isna(df['meta_score'].max(skipna=True)) else 100
         st.session_state.filters['meta_score'] = st.slider("Meta Score Range", min_value=meta_min, max_value=meta_max,
-                               value=st.session_state.filters['meta_score'], step=1, key='meta_score_filter_widget')
+                               value=st.session_state.filters['meta_score'], step=1, key='meta_score_range_slider') # Added unique key
 
 # Actor filter
 with st.sidebar.expander("🎭 Actors", expanded=True):
@@ -363,7 +363,7 @@ if st.sidebar.button("🔄 Reset All Filters", use_container_width=True):
     st.session_state.filters = {
         'genre': [],
         'certificate': [],
-        'year': (int(df['released_year'].min(skipna=True)) if pd.notna(df['released_year'].min(skipna=True)) else 1900, 
+        'year': (int(df['released_year'].min(skipna=True)) if pd.notna(df['released_year'].min(skipna=True)) else 1900,
                  int(df['released_year'].max(skipna=True)) if pd.notna(df['released_year'].max(skipna=True)) else 2025),
         'rating': (float(df['imdb_rating'].min(skipna=True)) if pd.notna(df['imdb_rating'].min(skipna=True)) else 0.0,
                    float(df['imdb_rating'].max(skipna=True)) if pd.notna(df['imdb_rating'].max(skipna=True)) else 10.0),
@@ -460,29 +460,29 @@ elif st.session_state.section == "basic":
 
         if numerical_cols:
             selected_num_col = st.selectbox("Select Numerical Column:", numerical_cols, key="num_col")
-            
+
             # Create simple histogram with Plotly
             fig = px.histogram(
-                filtered_df, 
-                x=selected_num_col, 
+                filtered_df,
+                x=selected_num_col,
                 nbins=20,  # Fixed number of bins for simplicity
                 title=f'Distribution of {selected_num_col.replace("_", " ").title()}',
                 labels={selected_num_col: selected_num_col.replace("_", " ").title()},
                 color_discrete_sequence=['#86A8E7']
             )
-            
+
             fig.update_layout(
                 height=500,
                 showlegend=False,
                 bargap=0.1  # Add some gap between bars for better visibility
             )
             st.plotly_chart(fig, use_container_width=True)
-            
- 
+
+
         st.markdown("---") # Add a separator
 
         # Categorical columns with larger layout
-        categorical_cols = [col for col in filtered_df.select_dtypes(include='object').columns.tolist() 
+        categorical_cols = [col for col in filtered_df.select_dtypes(include='object').columns.tolist()
                            if col not in ['poster_link', 'series_title', 'overview']]
 
         if categorical_cols:
@@ -490,7 +490,7 @@ elif st.session_state.section == "basic":
 
             # Get top 10 categories
             counts = filtered_df[selected_cat_col].value_counts().head(10)
-            
+
             # Create horizontal bar chart with Plotly
             fig = px.bar(
                 x=counts.values,
@@ -722,7 +722,7 @@ elif st.session_state.section == "top_movies":
             with col2:
                 # Percentage of sequels vs standalone
                 sequel_count = filtered_df['is_sequel'].value_counts()
-                
+
                 # Create pie chart with Plotly
                 fig = px.pie(
                     values=sequel_count.values,
