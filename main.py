@@ -104,7 +104,7 @@ def load_data():
     def check_sequel(title):
         title = str(title).lower()
         keywords = ["part", "chapter", "episode", "ii", "iii", "iv", "v", "vi",
-                    "2", "3", "4", "5", 6", "7", "8", "9"]
+                    "2", "3", "4", "5", "6", "7", "8", "9"]
         return any(k in title for k in keywords)
 
     df['is_sequel'] = df['series_title'].apply(check_sequel)
@@ -828,3 +828,4 @@ elif st.session_state.section == "recommendations":
             st.metric("Average Gross", f"${avg_gross:,.0f}")
         else:
             st.metric("Average Gross", "N/A")
+
