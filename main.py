@@ -9,6 +9,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+import random
 
 # -------------------------
 # Page Config
@@ -36,6 +37,24 @@ if 'filters' not in st.session_state:
         'meta_score': (0, 100),
         'actor': []
     }
+
+# List of cute cartoon images to use as placeholders
+CARTOON_IMAGES = [
+    "https://cdn.pixabay.com/photo/2017/01/31/23/42/animal-2028258_640.png",
+    "https://cdn.pixabay.com/photo/2016/03/31/19/58/avatar-1295429_640.png",
+    "https://cdn.pixabay.com/photo/2017/01/31/21/23/avatar-2027366_640.png",
+    "https://cdn.pixabay.com/photo/2016/03/31/20/11/avatar-1295575_640.png",
+    "https://cdn.pixabay.com/photo/2016/03/31/20/27/avatar-1295773_640.png",
+    "https://cdn.pixabay.com/photo/2016/03/31/20/31/amazed-1295833_640.png",
+    "https://cdn.pixabay.com/photo/2016/03/31/20/22/avatar-1295712_640.png",
+    "https://cdn.pixabay.com/photo/2016/03/31/20/23/avatar-1295714_640.png",
+    "https://cdn.pixabay.com/photo/2016/03/31/20/26/avatar-1295766_640.png",
+    "https://cdn.pixabay.com/photo/2016/03/31/20/27/avatar-1295774_640.png"
+]
+
+# Function to get a random cartoon image
+def get_random_cartoon():
+    return random.choice(CARTOON_IMAGES)
 
 # -------------------------
 # Load Dataset
@@ -439,17 +458,14 @@ if st.session_state.section == "dataset":
     if not filtered_df.empty:
         st.dataframe(filtered_df.head(5))
 
-        # Show posters preview
+        # Show posters preview - replaced with cartoon images
         st.markdown("### 🎬 Posters Preview")
         cols = st.columns(5)
         for idx, row in filtered_df.head(5).iterrows():
             col = cols[idx % 5]
             with col:
                 st.markdown(f"**{row['series_title']}**")
-                if pd.notna(row['poster_link']):
-                    st.image(row['poster_link'], width=120)
-                else:
-                    st.write("No poster available")
+                st.image(get_random_cartoon(), width=120)
     else:
         st.warning("No movies match your filters. Please adjust your filter criteria.")
         st.dataframe(df.head(5))
@@ -793,10 +809,8 @@ elif st.session_state.section == "recommendations":
             with st.expander(f"{row['series_title']} ({row['released_year']}) - ⭐ {row['imdb_rating'] if 'imdb_rating' in row else 'N/A'}"):
                 col1, col2 = st.columns([1, 2])
                 with col1:
-                    if pd.notna(row['poster_link']):
-                        st.image(row['poster_link'], width=200)
-                    else:
-                        st.write("No poster available")
+                    # Replaced poster with cartoon image
+                    st.image(get_random_cartoon(), width=200)
 
                 with col2:
                     st.write(f"**Genre:** {row['genre']}")
@@ -828,4 +842,3 @@ elif st.session_state.section == "recommendations":
             st.metric("Average Gross", f"${avg_gross:,.0f}")
         else:
             st.metric("Average Gross", "N/A")
-
