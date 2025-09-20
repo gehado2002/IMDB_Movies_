@@ -9,8 +9,6 @@ from sklearn.metrics.pairwise import cosine_similarity
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-import random
-from itertools import cycle
 
 # -------------------------
 # Page Config
@@ -38,60 +36,6 @@ if 'filters' not in st.session_state:
         'meta_score': (0, 100),
         'actor': []
     }
-
-# Extended list of cute cartoon images to use as placeholders
-CARTOON_IMAGES = [
-    "https://cdn.pixabay.com/photo/2017/01/31/23/42/animal-2028258_640.png",
-    "https://cdn.pixabay.com/photo/2016/03/31/19/58/avatar-1295429_640.png",
-    "https://cdn.pixabay.com/photo/2017/01/31/21/23/avatar-2027366_640.png",
-    "https://cdn.pixabay.com/photo/2016/03/31/20/11/avatar-1295575_640.png",
-    "https://cdn.pixabay.com/photo/2016/03/31/20/27/avatar-1295773_640.png",
-    "https://cdn.pixabay.com/photo/2016/03/31/20/31/amazed-1295833_640.png",
-    "https://cdn.pixabay.com/photo/2016/03/31/20/22/avatar-1295712_640.png",
-    "https://cdn.pixabay.com/photo/2016/03/31/20/23/avatar-1295714_640.png",
-    "https://cdn.pixabay.com/photo/2016/03/31/20/26/avatar-1295766_640.png",
-    "https://cdn.pixabay.com/photo/2016/03/31/20/27/avatar-1295774_640.png",
-    "https://cdn.pixabay.com/photo/2017/01/31/22/32/animal-2026872_640.png",
-    "https://cdn.pixabay.com/photo/2017/01/31/22/32/animal-2026873_640.png",
-    "https://cdn.pixabay.com/photo/2017/01/31/22/32/animal-2026874_640.png",
-    "https://cdn.pixabay.com/photo/2017/01/31/22/32/animal-2026875_640.png",
-    "https://cdn.pixabay.com/photo/2017/01/31/22/32/animal-2026876_640.png",
-    "https://cdn.pixabay.com/photo/2017/01/31/22/32/animal-2026877_640.png",
-    "https://cdn.pixabay.com/photo/2017/01/31/22/32/animal-2026878_640.png",
-    "https://cdn.pixabay.com/photo/2017/01/31/22/32/animal-2026879_640.png",
-    "https://cdn.pixabay.com/photo/2017/01/31/22/32/animal-2026880_640.png",
-    "https://cdn.pixabay.com/photo/2017/01/31/22/32/animal-2026881_640.png",
-    "https://cdn.pixabay.com/photo/2017/01/31/22/32/animal-2026882_640.png",
-    "https://cdn.pixabay.com/photo/2017/01/31/22/32/animal-2026883_640.png",
-    "https://cdn.pixabay.com/photo/2017/01/31/22/32/animal-2026884_640.png",
-    "https://cdn.pixabay.com/photo/2017/01/31/22/32/animal-2026885_640.png",
-    "https://cdn.pixabay.com/photo/2017/01/31/22/32/animal-2026886_640.png",
-    "https://cdn.pixabay.com/photo/2017/01/31/22/32/animal-2026887_640.png",
-    "https://cdn.pixabay.com/photo/2017/01/31/22/32/animal-2026888_640.png",
-    "https://cdn.pixabay.com/photo/2017/01/31/22/32/animal-2026889_640.png",
-    "https://cdn.pixabay.com/photo/2017/01/31/22/32/animal-2026890_640.png",
-    "https://cdn.pixabay.com/photo/2017/01/31/22/32/animal-2026891_640.png",
-    "https://cdn.pixabay.com/photo/2017/01/31/22/32/animal-2026892_640.png",
-    "https://cdn.pixabay.com/photo/2017/01/31/22/32/animal-2026893_640.png",
-    "https://cdn.pixabay.com/photo/2017/01/31/22/32/animal-2026894_640.png",
-    "https://cdn.pixabay.com/photo/2017/01/31/22/32/animal-2026895_640.png",
-    "https://cdn.pixabay.com/photo/2017/01/31/22/32/animal-2026896_640.png",
-    "https://cdn.pixabay.com/photo/2017/01/31/22/32/animal-2026897_640.png",
-    "https://cdn.pixabay.com/photo/2017/01/31/22/32/animal-2026898_640.png",
-    "https://cdn.pixabay.com/photo/2017/01/31/22/32/animal-2026899_640.png",
-    "https://cdn.pixabay.com/photo/2017/01/31/22/32/animal-2026900_640.png",
-    "https://cdn.pixabay.com/photo/2017/01/31/22/32/animal-2026901_640.png"
-]
-
-# Create an image cycle to ensure no empty images
-image_cycle = cycle(CARTOON_IMAGES)
-
-# Function to get a unique cartoon image for each movie
-def get_movie_image(movie_title):
-    # Use the movie title to generate a consistent but unique image
-    # This ensures the same movie always gets the same image
-    title_hash = hash(movie_title) % len(CARTOON_IMAGES)
-    return CARTOON_IMAGES[title_hash]
 
 # -------------------------
 # Load Dataset
@@ -495,14 +439,17 @@ if st.session_state.section == "dataset":
     if not filtered_df.empty:
         st.dataframe(filtered_df.head(5))
 
-        # Show posters preview - replaced with cartoon images
+        # Show posters preview
         st.markdown("### 🎬 Posters Preview")
         cols = st.columns(5)
         for idx, row in filtered_df.head(5).iterrows():
             col = cols[idx % 5]
             with col:
                 st.markdown(f"**{row['series_title']}**")
-                st.image(get_movie_image(row['series_title']), width=120)
+                if pd.notna(row['poster_link']):
+                    st.image(row['poster_link'], width=120)
+                else:
+                    st.write("No poster available")
     else:
         st.warning("No movies match your filters. Please adjust your filter criteria.")
         st.dataframe(df.head(5))
@@ -817,16 +764,22 @@ elif st.session_state.section == "recommendations":
 
     with col2:
         selected_year = st.selectbox("Era:", options=sorted(filtered_df['year_group'].unique()))
+        # Removed actor selection from here
 
-    # Start with the filtered_df (which already has sidebar filters applied)
-    recommended_movies = filtered_df.copy()
-    
-    # Apply additional preference filters
-    recommended_movies = recommended_movies[
-        (recommended_movies['genre_group'] == selected_genre) &
-        (recommended_movies['certificate_group'] == selected_certificate) &
-        (recommended_movies['year_group'] == selected_year)
+    # Filter movies based on preferences
+    recommended_movies = filtered_df[
+        (filtered_df['genre_group'] == selected_genre) &
+        (filtered_df['certificate_group'] == selected_certificate) &
+        (filtered_df['year_group'] == selected_year)
     ]
+
+    # Apply actor filter from the sidebar
+    if st.session_state.filters['actor']:
+        actor_filter_mask = recommended_movies[['star1', 'star2', 'star3', 'star4']].apply(
+            lambda row: any(actor in row.values for actor in st.session_state.filters['actor']), axis=1
+        )
+        recommended_movies = recommended_movies[actor_filter_mask]
+
 
     # Sort by rating and gross if available
     sort_columns = []
@@ -846,12 +799,15 @@ elif st.session_state.section == "recommendations":
             with st.expander(f"{row['series_title']} ({row['released_year']}) - ⭐ {row['imdb_rating'] if 'imdb_rating' in row else 'N/A'}"):
                 col1, col2 = st.columns([1, 2])
                 with col1:
-                    # Use unique cartoon image for each movie
-                    st.image(get_movie_image(row['series_title']), width=200)
+                    if pd.notna(row['poster_link']):
+                        st.image(row['poster_link'], width=200)
+                    else:
+                        st.write("No poster available")
 
                 with col2:
                     st.write(f"**Genre:** {row['genre']}")
                     st.write(f"**Certificate:** {row['certificate']}")
+                    # Removed runtime display as requested
                     st.write(f"**Director:** {row['director']}")
                     stars = ", ".join([row[col] for col in ['star1', 'star2', 'star3', 'star4'] if col in row and pd.notna(row[col])])
                     st.write(f"**Stars:** {stars}")
@@ -879,3 +835,4 @@ elif st.session_state.section == "recommendations":
             st.metric("Average Gross", f"${avg_gross:,.0f}")
         else:
             st.metric("Average Gross", "N/A")
+
