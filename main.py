@@ -539,7 +539,7 @@ elif st.session_state.section == "basic":
             )
             st.plotly_chart(fig, use_container_width=True)
 
-        elif selected_bivariate == "Rating vs Gross" and 'gross'极 filtered_df.columns and 'imdb_rating' in filtered_df.columns:
+        elif selected_bivariate == "Rating vs Gross" and 'gross' in filtered_df.columns and 'imdb_rating' in filtered_df.columns:
             # Create scatter plot with Plotly
             fig = px.scatter(
                 filtered_df,
@@ -804,3 +804,4 @@ elif st.session_state.section == "recommendations":
             st.metric("Average Gross", f"${avg_gross:,.0f}")
         else:
             st.metric("Average Gross", "N/A")
+
