@@ -25,6 +25,18 @@ if 'reset_filters' not in st.session_state:
 if 'first_load' not in st.session_state:
     st.session_state.first_load = True
 
+# تهيئة حالة الجلسة للفلاتر
+if 'filters' not in st.session_state:
+    st.session_state.filters = {
+        'genre': [],
+        'certificate': [],
+        'year': (),
+        'rating': (),
+        'runtime': (),
+        'meta_score': (0, 100),
+        'actor': []
+    }
+
 # -------------------------
 # Load Dataset
 # -------------------------
@@ -156,28 +168,21 @@ def load_data():
 
 df = load_data()
 
-# Initialize filter session states before any widgets are created
-if 'genre_filter' not in st.session_state:
-    st.session_state.genre_filter = []
-if 'certificate_filter' not in st.session_state:
-    st.session_state.certificate_filter = []
-if 'year_filter' not in st.session_state:
+# تهيئة قيم الفلاتر إذا كانت فارغة
+if not st.session_state.filters['year']:
     year_min = int(df['released_year'].min(skipna=True)) if pd.notna(df['released_year'].min(skipna=True)) else 1900
     year_max = int(df['released_year'].max(skipna=True)) if pd.notna(df['released_year'].max(skipna=True)) else 2025
-    st.session_state.year_filter = (year_min, year_max)
-if 'rating_filter' not in st.session_state:
+    st.session_state.filters['year'] = (year_min, year_max)
+
+if not st.session_state.filters['rating']:
     rating_min = float(df['imdb_rating'].min(skipna=True)) if pd.notna(df['imdb_rating'].min(skipna=True)) else 0.0
     rating_max = float(df['imdb_rating'].max(skipna=True)) if pd.notna(df['imdb_rating'].max(skipna=True)) else 10.0
-    st.session_state.rating_filter = (rating_min, rating_max)
-if 'runtime_filter' not in st.session_state:
+    st.session_state.filters['rating'] = (rating_min, rating_max)
+
+if not st.session_state.filters['runtime']:
     runtime_min = int(df['runtime'].min(skipna=True)) if not pd.isna(df['runtime'].min(skipna=True)) else 0
     runtime_max = int(df['runtime'].max(skipna=True)) if not pd.isna(df['runtime'].max(skipna=True)) else 180
-    st.session_state.runtime_filter = (runtime_min, runtime_max)
-if 'meta_score_filter' not in st.session_state:
-    st.session_state.meta_score_filter = (0, 100)  # Default range for meta score
-if 'actor_filter' not in st.session_state:
-    st.session_state.actor_filter = []
-
+    st.session_state.filters['runtime'] = (runtime_min, runtime_max)
 
 # -------------------------
 # Background Gradient + Top-Right GIF + Top-Left GIF
@@ -223,7 +228,7 @@ st.markdown(
     }
     </style>
     <div class="top-right-gif">
-        <img src="https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExOG1zM2JjZ3UyY25wcTdlZzc3aG16MWViZm12cGQ0M3JhZjZpeHFxOSZlcD12MV9pbnRlrm5hbF9naWZfYnlfaWQmY3Q9cw/aEWwGhZpWE7AGekRiZ/giphy.gif" width="230"> <!-- Updated URL and width -->
+        <img src="https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExOG1zM2JjZ3UyY25wcTdlZzc3aG16MWViZm12cGQ0M3JhZjZpeHFxOSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/aEWwGhZpWE7AGekRiZ/giphy.gif" width="230"> <!-- Updated URL and width -->
     </div>
     <div class="top-left-gif">
         <img src="https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3MDUwdzV4dHFpeHg1NDJhZmk2bXc3Z2F0cW9zN3NxcXdlNmJweGFqcCZlcD12MV9zdGlja2Vyc19zZWFyY2gmY3Q=cw/aEWwGhZpWE7AGekRiZ/giphy.gif" width="150"> <!-- Adjusted width -->
@@ -306,42 +311,41 @@ st.sidebar.markdown("## 🎛️ Filters")
 # Genre filter
 with st.sidebar.expander("🎬 Genre", expanded=True):
     genre_options = sorted(df['genre'].dropna().unique())
-    st.session_state.genre_filter = st.multiselect("Select Genre", options=genre_options, default=st.session_state.genre_filter, key='genre_filter_widget')
+    st.session_state.filters['genre'] = st.multiselect("Select Genre", options=genre_options, default=st.session_state.filters['genre'], key='genre_filter_widget')
 
 # Certificate filter
 with st.sidebar.expander("🎟️ Certificate", expanded=True):
     certificate_options = sorted(df['certificate'].dropna().astype(str).unique())
-    st.session_state.certificate_filter = st.multiselect("Select Certificate", options=certificate_options, default=st.session_state.certificate_filter, key='certificate_filter_widget')
+    st.session_state.filters['certificate'] = st.multiselect("Select Certificate", options=certificate_options, default=st.session_state.filters['certificate'], key='certificate_filter_widget')
 
 # Released Year filter
 with st.sidebar.expander("📅 Released Year", expanded=True):
     year_min = int(df['released_year'].min(skipna=True)) if pd.notna(df['released_year'].min(skipna=True)) else 1900
     year_max = int(df['released_year'].max(skipna=True)) if pd.notna(df['released_year'].max(skipna=True)) else 2025
-    st.session_state.year_filter = st.slider("Year Range", min_value=year_min, max_value=year_max,
-                           value=st.session_state.year_filter, step=1, key='year_filter_widget')
+    st.session_state.filters['year'] = st.slider("Year Range", min_value=year_min, max_value=year_max,
+                           value=st.session_state.filters['year'], step=1, key='year_filter_widget')
 
 # IMDB Rating filter
 with st.sidebar.expander("⭐ IMDB Rating", expanded=True):
     rating_min = float(df['imdb_rating'].min(skipna=True)) if pd.notna(df['imdb_rating'].min(skipna=True)) else 0.0
     rating_max = float(df['imdb_rating'].max(skipna=True)) if pd.notna(df['imdb_rating'].max(skipna=True)) else 10.0
-    st.session_state.rating_filter = (rating_min, rating_max)
-    st.session_state.rating_filter = st.slider("Rating Range", min_value=rating_min, max_value=rating_max,
-                           value=st.session_state.rating_filter, step=0.1, key='rating_filter_widget')
+    st.session_state.filters['rating'] = st.slider("Rating Range", min_value=rating_min, max_value=rating_max,
+                           value=st.session_state.filters['rating'], step=0.1, key='rating_filter_widget')
 
 # Runtime filter
 with st.sidebar.expander("⏱️ Runtime", expanded=True):
     runtime_min = int(df['runtime'].min(skipna=True)) if not pd.isna(df['runtime'].min(skipna=True)) else 0
     runtime_max = int(df['runtime'].max(skipna=True)) if not pd.isna(df['runtime'].max(skipna=True)) else 180
-    st.session_state.runtime_filter = st.slider("Runtime (minutes)", min_value=runtime_min, max_value=runtime_max,
-                           value=st.session_state.runtime_filter, step=5, key='runtime_filter_widget')
+    st.session_state.filters['runtime'] = st.slider("Runtime (minutes)", min_value=runtime_min, max_value=runtime_max,
+                           value=st.session_state.filters['runtime'], step=5, key='runtime_filter_widget')
 
 # Meta Score filter
 if 'meta_score' in df.columns:
     with st.sidebar.expander("📊 Meta Score", expanded=True):
         meta_min = int(df['meta_score'].min(skipna=True)) if not pd.isna(df['meta_score'].min(skipna=True)) else 0
         meta_max = int(df['meta_score'].max(skipna=True)) if not pd.isna(df['meta_score'].max(skipna=True)) else 100
-        st.session_state.meta_score_filter = st.slider("Meta Score Range", min_value=meta_min, max_value=meta_max,
-                               value=st.session_state.meta_score_filter, step=1, key='meta_score_filter_widget')
+        st.session_state.filters['meta_score'] = st.slider("Meta Score Range", min_value=meta_min, max_value=meta_max,
+                               value=st.session_state.filters['meta_score'], step=1, key='meta_score_filter_widget')
 
 # Actor filter
 with st.sidebar.expander("🎭 Actors", expanded=True):
@@ -350,29 +354,24 @@ with st.sidebar.expander("🎭 Actors", expanded=True):
         if col in df.columns:
             all_actors.update(df[col].dropna().unique())
     all_actors = sorted(all_actors)
-    st.session_state.actor_filter = st.multiselect("Select Actors", options=all_actors, default=st.session_state.actor_filter, key='actor_filter_widget')
+    st.session_state.filters['actor'] = st.multiselect("Select Actors", options=all_actors, default=st.session_state.filters['actor'], key='actor_filter_widget')
 
 
 # Reset filters button at the bottom of filters
 if st.sidebar.button("🔄 Reset All Filters", use_container_width=True):
     # Reset session state variables associated with filters
-    st.session_state.genre_filter = []
-    st.session_state.certificate_filter = []
-    year_min = int(df['released_year'].min(skipna=True)) if pd.notna(df['released_year'].min(skipna=True)) else 1900
-    year_max = int(df['released_year'].max(skipna=True)) if pd.notna(df['released_year'].max(skipna=True)) else 2025
-    st.session_state.year_filter = (year_min, year_max) # Resetting to the default range
-    rating_min = float(df['imdb_rating'].min(skipna=True)) if pd.notna(df['imdb_rating'].min(skipna=True)) else 0.0
-    rating_max = float(df['imdb_rating'].max(skipna=True)) if pd.notna(df['imdb_rating'].max(skipna=True)) else 10.0
-    st.session_state.rating_filter = (rating_min, rating_max) # Resetting to the default range
-    runtime_min = int(df['runtime'].min(skipna=True)) if not pd.isna(df['runtime'].min(skipna=True)) else 0
-    runtime_max = int(df['runtime'].max(skipna=True)) if not pd.isna(df['runtime'].max(skipna=True)) else 180
-    st.session_state.runtime_filter = (runtime_min, runtime_max) # Resetting to the default range
-    if 'meta_score' in df.columns:
-         st.session_state.meta_score_filter = (int(df['meta_score'].min(skipna=True)) if not pd.isna(df['meta_score'].min(skipna=True)) else 0, int(df['meta_score'].max(skipna=True)) if not pd.isna(df['meta_score'].max(skipna=True)) else 100) # Resetting to default range
-    st.session_state.actor_filter = []
-
-    # Setting reset_filters to True is no longer strictly necessary if we rerun directly
-    # st.session_state.reset_filters = True
+    st.session_state.filters = {
+        'genre': [],
+        'certificate': [],
+        'year': (int(df['released_year'].min(skipna=True)) if pd.notna(df['released_year'].min(skipna=True)) else 1900, 
+                 int(df['released_year'].max(skipna=True)) if pd.notna(df['released_year'].max(skipna=True)) else 2025),
+        'rating': (float(df['imdb_rating'].min(skipna=True)) if pd.notna(df['imdb_rating'].min(skipna=True)) else 0.0,
+                   float(df['imdb_rating'].max(skipna=True)) if pd.notna(df['imdb_rating'].max(skipna=True)) else 10.0),
+        'runtime': (int(df['runtime'].min(skipna=True)) if not pd.isna(df['runtime'].min(skipna=True)) else 0,
+                    int(df['runtime'].max(skipna=True)) if not pd.isna(df['runtime'].max(skipna=True)) else 180),
+        'meta_score': (0, 100),
+        'actor': []
+    }
     st.rerun()
 
 
@@ -380,31 +379,31 @@ if st.sidebar.button("🔄 Reset All Filters", use_container_width=True):
 filtered_df = df.copy()
 
 # Apply filters only if they are selected
-if st.session_state.genre_filter:
+if st.session_state.filters['genre']:
     # Create a pattern to match any of the selected genres
-    genre_pattern = '|'.join([re.escape(g) for g in st.session_state.genre_filter]) # Escape special characters
+    genre_pattern = '|'.join([re.escape(g) for g in st.session_state.filters['genre']]) # Escape special characters
     filtered_df = filtered_df[filtered_df['genre'].str.contains(genre_pattern, na=False, case=False)]
 
-if st.session_state.certificate_filter:
-    filtered_df = filtered_df[filtered_df['certificate'].astype(str).isin(st.session_state.certificate_filter)]
+if st.session_state.filters['certificate']:
+    filtered_df = filtered_df[filtered_df['certificate'].astype(str).isin(st.session_state.filters['certificate'])]
 
 # Apply range filters with NaN handling
 filtered_df = filtered_df[
-    (filtered_df['released_year'].isna() | ((filtered_df['released_year'] >= st.session_state.year_filter[0]) & (filtered_df['released_year'] <= st.session_state.year_filter[1]))) &
-    (filtered_df['imdb_rating'].isna() | ((filtered_df['imdb_rating'] >= st.session_state.rating_filter[0]) & (filtered_df['imdb_rating'] <= st.session_state.rating_filter[1]))) &
-    (filtered_df['runtime'].isna() | ((filtered_df['runtime'] >= st.session_state.runtime_filter[0]) & (filtered_df['runtime'] <= st.session_state.runtime_filter[1])))
+    (filtered_df['released_year'].isna() | ((filtered_df['released_year'] >= st.session_state.filters['year'][0]) & (filtered_df['released_year'] <= st.session_state.filters['year'][1]))) &
+    (filtered_df['imdb_rating'].isna() | ((filtered_df['imdb_rating'] >= st.session_state.filters['rating'][0]) & (filtered_df['imdb_rating'] <= st.session_state.filters['rating'][1]))) &
+    (filtered_df['runtime'].isna() | ((filtered_df['runtime'] >= st.session_state.filters['runtime'][0]) & (filtered_df['runtime'] <= st.session_state.filters['runtime'][1])))
 ]
 
 # Apply meta score filter if available
 if 'meta_score' in df.columns:
     filtered_df = filtered_df[
-        (filtered_df['meta_score'].isna() | ((filtered_df['meta_score'] >= st.session_state.meta_score_filter[0]) & (filtered_df['meta_score'] <= st.session_state.meta_score_filter[1])))
+        (filtered_df['meta_score'].isna() | ((filtered_df['meta_score'] >= st.session_state.filters['meta_score'][0]) & (filtered_df['meta_score'] <= st.session_state.filters['meta_score'][1])))
     ]
 
 # Apply actor filter if any actors are selected
-if st.session_state.actor_filter:
+if st.session_state.filters['actor']:
     actor_filter_mask = filtered_df[['star1', 'star2', 'star3', 'star4']].apply(
-        lambda row: any(actor in row.values for actor in st.session_state.actor_filter), axis=1
+        lambda row: any(actor in row.values for actor in st.session_state.filters['actor']), axis=1
     )
     filtered_df = filtered_df[actor_filter_mask]
 
@@ -769,9 +768,9 @@ elif st.session_state.section == "recommendations":
     ]
 
     # Apply actor filter from the sidebar
-    if st.session_state.actor_filter:
+    if st.session_state.filters['actor']:
         actor_filter_mask = recommended_movies[['star1', 'star2', 'star3', 'star4']].apply(
-            lambda row: any(actor in row.values for actor in st.session_state.actor_filter), axis=1
+            lambda row: any(actor in row.values for actor in st.session_state.filters['actor']), axis=1
         )
         recommended_movies = recommended_movies[actor_filter_mask]
 
