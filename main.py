@@ -104,7 +104,7 @@ def load_data():
     def check_sequel(title):
         title = str(title).lower()
         keywords = ["part", "chapter", "episode", "ii", "iii", "iv", "v", "vi",
-                    "2", "3", "4", "5", "6", "7", "8", "9"]
+                    "2", "3", "4", "5", 6", "7", "8", "9"]
         return any(k in title for k in keywords)
 
     df['is_sequel'] = df['series_title'].apply(check_sequel)
@@ -764,22 +764,16 @@ elif st.session_state.section == "recommendations":
 
     with col2:
         selected_year = st.selectbox("Era:", options=sorted(filtered_df['year_group'].unique()))
-        # Removed actor selection from here
 
-    # Filter movies based on preferences
-    recommended_movies = filtered_df[
-        (filtered_df['genre_group'] == selected_genre) &
-        (filtered_df['certificate_group'] == selected_certificate) &
-        (filtered_df['year_group'] == selected_year)
+    # Start with the filtered_df (which already has sidebar filters applied)
+    recommended_movies = filtered_df.copy()
+    
+    # Apply additional preference filters
+    recommended_movies = recommended_movies[
+        (recommended_movies['genre_group'] == selected_genre) &
+        (recommended_movies['certificate_group'] == selected_certificate) &
+        (recommended_movies['year_group'] == selected_year)
     ]
-
-    # Apply actor filter from the sidebar
-    if st.session_state.filters['actor']:
-        actor_filter_mask = recommended_movies[['star1', 'star2', 'star3', 'star4']].apply(
-            lambda row: any(actor in row.values for actor in st.session_state.filters['actor']), axis=1
-        )
-        recommended_movies = recommended_movies[actor_filter_mask]
-
 
     # Sort by rating and gross if available
     sort_columns = []
@@ -807,7 +801,6 @@ elif st.session_state.section == "recommendations":
                 with col2:
                     st.write(f"**Genre:** {row['genre']}")
                     st.write(f"**Certificate:** {row['certificate']}")
-                    # Removed runtime display as requested
                     st.write(f"**Director:** {row['director']}")
                     stars = ", ".join([row[col] for col in ['star1', 'star2', 'star3', 'star4'] if col in row and pd.notna(row[col])])
                     st.write(f"**Stars:** {stars}")
@@ -835,5 +828,3 @@ elif st.session_state.section == "recommendations":
             st.metric("Average Gross", f"${avg_gross:,.0f}")
         else:
             st.metric("Average Gross", "N/A")
-
-
