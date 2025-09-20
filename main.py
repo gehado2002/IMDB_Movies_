@@ -333,7 +333,7 @@ with st.sidebar.expander("🎟️ Certificate", expanded=True):
 # Released Year filter
 with st.sidebar.expander("📅 Released Year", expanded=True):
     selected_year_range = st.slider("Year Range", min_value=year_min, max_value=year_max,
-                       value=st.session_state.filters['year'] )
+                       value=st.session_state.filters['year'],step=1)
     st.session_state.filters['year'] = selected_year_range
 
 # IMDB Rating filter
@@ -835,4 +835,5 @@ elif st.session_state.section == "recommendations":
             st.metric("Average Gross", f"${avg_gross:,.0f}")
         else:
             st.metric("Average Gross", "N/A")
+
 
